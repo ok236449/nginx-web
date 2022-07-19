@@ -1,3 +1,3 @@
 <?php
-echo "Error! Please Manually Copy Your Wordpress Files or reinstall";
-phpinfo();
+echo "This is the default PHP file. Please use your own HTML/PHP code.";
+//phpinfo();
