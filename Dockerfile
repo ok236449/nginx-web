@@ -1,3 +1,4 @@
+#comment to trigger new build
 FROM alpine:edge
 
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1,2)/community" >> /etc/apk/repositories
