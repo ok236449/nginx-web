@@ -1,3 +1,3 @@
-# pterodactyl-wordpress
+# nginx webs inside pterodactyl
 
-wordpress for pterodactyl panel v1
+nginx for pterodactyl panel v1
