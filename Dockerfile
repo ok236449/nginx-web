@@ -1,5 +1,5 @@
 #comment to trigger new build
-FROM alpine:latest
+FROM alpine:3.14
 
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1,2)/community" >> /etc/apk/repositories
 RUN apk --update --no-cache add ca-certificates nginx
