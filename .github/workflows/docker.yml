@@ -1,14 +1,12 @@
 name: Docker CI/CD
 
 on:
-  schedule:
-    - cron: '17 9 * * *'
   push:
     branches: [ "master" ]
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "master" ]
-  workflow_dispatch: # <--- This adds the manual "Run workflow" button
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -41,14 +39,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata with automatic 'latest' tag support
+      # Extract metadata with automatic latest tag generation for default branch
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=auto
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
             type=sha
 
@@ -57,7 +56,6 @@ jobs:
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           context: .
-          # Push if it's a push event, a tag, or a manual workflow_dispatch
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
