@@ -5,7 +5,7 @@ RUN apk add --no-cache \
     nginx bash curl less vim git tzdata mysql-client sqlite sqlite-libs \
     freetype libjpeg-turbo libpng libzip libintl icu libpq libxml2 \
     && apk add --no-cache --virtual .build-deps \
-    freetype-dev libjpeg-turbo-dev libpng-dev libzip-dev icu-dev postgresql-dev libxml2-dev \
+    freetype-dev libjpeg-turbo-dev libpng-dev libzip-dev icu-dev postgresql-dev libxml2-dev sqlite-dev \
     autoconf dpkg-dev dpkg file g++ gcc libc-dev make pkgconf re2c \
     \
     # Configure and install core PHP extensions
