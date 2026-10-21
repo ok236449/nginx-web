@@ -1,18 +1,47 @@
-#comment to trigger new build
-FROM alpine:3.15
+FROM php:8.3.36-fpm-alpine
 
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1,2)/community" >> /etc/apk/repositories
-RUN apk --update --no-cache add ca-certificates nginx
-RUN apk add php8 php8-fpm php8-pecl-mcrypt php8-soap php8-openssl php8-gmp php8-pdo_odbc php8-json php8-dom php8-pdo php8-zip php8-mysqli php8-sqlite3 php8-apcu php8-pdo_pgsql php8-bcmath php8-gd php8-odbc php8-pdo_mysql php8-pdo_sqlite php8-gettext php8-xmlreader php8-bz2 php8-iconv php8-pdo_dblib php8-curl php8-ctype php8-phar php8-fileinfo php8-mbstring php8-exif php8-tokenizer lighttpd php8-common php8-gd php8-xml php8-imap php8-cgi fcgi php8-posix php8-ldap php8-session zip bash curl less vim git tzdata libmcrypt-dev zlib-dev gmp-dev freetype-dev libjpeg-turbo-dev libpng-dev php8-zlib php8-xmlwriter php8-simplexml php8-phar php8-opcache php8-ctype php8-intl php8-bcmath php8-dom mysql-client musl sqlite composer
+# 1. Install runtime dependencies and build toolchain in a single layer
+RUN apk add --no-cache \
+    nginx bash curl less vim git tzdata mysql-client sqlite sqlite-libs \
+    freetype libjpeg-turbo libpng libzip libintl icu libpq libxml2 \
+    && apk add --no-cache --virtual .build-deps \
+    freetype-dev libjpeg-turbo-dev libpng-dev libzip-dev icu-dev postgresql-dev libxml2-dev \
+    autoconf dpkg-dev dpkg file g++ gcc libc-dev make pkgconf re2c \
+    \
+    # Configure and install core PHP extensions
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_mysql \
+        pdo_sqlite \
+        mysqli \
+        zip \
+        bcmath \
+        gd \
+        intl \
+        opcache \
+        soap \
+        sockets \
+        pdo_pgsql \
+        pgsql \
+    \
+    # Install APCu extension via PECL
+    && pecl install apcu \
+    && docker-php-ext-enable apcu \
+    \
+    # Strip out heavy build dependencies to minimize image size
+    && apk del .build-deps
 
+# 2. Install Composer from the official upstream image
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-
+# 3. Set up non-root runtime user and working directory
 USER container
-ENV  USER container
-ENV HOME /home/container
+ENV USER=container
+ENV HOME=/home/container
 
 WORKDIR /home/container
 
-COPY ./entrypoint.sh /entrypoint.sh
+# 4. Copy entrypoint script with correct ownership and execution permissions
+COPY --chown=container:container --chmod=755 ./entrypoint.sh /entrypoint.sh
 
 CMD ["/bin/ash", "/entrypoint.sh"]
